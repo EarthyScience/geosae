@@ -1,0 +1,88 @@
+# BatchTopK SAE on a patch store's AlphaEarth embeddings: train -> predict, then evaluate.
+# The library's default recipe; override any field on the CLI (-o model.k=32).
+# The store path is data.zarr_path: set GEOSAE_STORE or pass -o data.zarr_path=<store>.
+# data.split_name null reads the store's only split_* array; name one when it has several.
+name: batchtopk
+seed: 42
+device: auto            # cuda when a GPU is visible, else cpu
+
+run:
+  root: runs
+  # dir: auto = <root>/<name>/<timestamp>; set to reuse a specific run
+
+data:
+  zarr_path: ${oc.env:GEOSAE_STORE,data/majortom210k.zarr}
+  embedding_name: alphaearth
+  split_name: null        # the store's only split_* array
+  inram_dtype: float16
+  n_load_workers: 16
+  transforms: {}          # AlphaEarth is already unit-norm
+
+model:
+  type: batchtopk
+  input_dim: 64
+  latent_dim: 1024
+  k: 16
+  pre_bias: true
+  normalize_decoder: true
+  init_encoder_from_decoder: true
+  n_batches_to_dead: 25
+  freeze_decoder: false   # true trains the encoder against a random frozen decoder
+
+train:
+  compute_inram: true     # load train + val into RAM (~55 GB fp16 at 210k)
+  lr: 1.0e-3
+  beta1: 0.0
+  beta2: 0.999
+  weight_decay: 0.0
+  clip_grad_norm: 1.0
+  batch_size: 128         # patches/step -> 128*4096 = 524k pixels/step
+  epochs: 50
+  steps_per_epoch: 1000
+  rampup: 1000
+  aux_penalty: 0.03125
+  top_k_aux: 32
+  amp: true
+  val_batch_size: 64
+  log_every: 200
+
+predict:
+  split: test
+  compute_inram: true
+  batch_size: 64
+  max_k: 32
+  chunk_cells: 50
+
+coverage:                      # width-fair concept coverage (`geosae coverage`)
+  split: test
+  sample_path: null            # cached pixel sample; null = <run>/eval/<split>_registry_sample.npz.
+                               # Point a width sweep at ONE shared path so every cell is scored
+                               # on the identical pixels — that is what makes the widths comparable.
+  sparse_codes: true           # score the k-sparse codes; false = dense pre-top-k latents,
+                               # the only regime commensurate with a raw/PCA/ICA/NMF dimension
+  n_patches: 400               # cells drawn from the split
+  pixels_per_patch: 256        # pixels per cell, at positions drawn once and reused everywhere
+  seed: 0                      # pixel-sample + dense-basis seed
+  max_per_side: 2500           # balanced-sample cap per concept side
+  min_positive: 50             # concepts with fewer positive pixels are not scored
+  n_perm: 200                  # draws of the width-matched best-of-M null
+  alpha: 0.05                  # significance level of the calibrated coverage (CCov)
+  matched_budgets: [64, 128]   # also score the top-M' most-used features (capacity control)
+  dense_bases: [raw, pca, ica, nmf]   # scored on the same pixels
+  random_widths: []            # untrained random unit-norm dictionaries at these widths — the
+                               # control for how much coverage is best-of-M selection bias alone
+  batch_size: 65536            # pixels per encoder forward pass
+
+subconcepts:
+  parent_product: lc_esa_wc    # sweeps every class of this product by default
+  parent_purity: 0.5           # min. valid-pixel fraction of the parent code
+  reference_purity: 0.5        # min. valid-pixel fraction of the modal reference stratum
+  align_threshold: 0.65        # min. folded AUROC (vs. parent indicator) to count as aligned
+  dedup_cosine: 0.9            # decoder-atom cosine similarity above which a feature is a duplicate
+  max_subconcepts: 6           # max. kept (deduplicated) features per parent class
+  min_stratum_patches: 30      # min. parent-patch count for a reference stratum to be eligible
+  n_null: 200                  # null draws per null kind, full validation
+  n_null_rank: 50              # reduced null draws for the parent x reference ranking sweep
+  block_deg: [5.0, 20.0]       # macro-cell sizes (degrees); one block-permutation null per value
+  normalize: mean_active       # partition rule: relative ("mean_active") or raw ("none") activation
+  seed: 0

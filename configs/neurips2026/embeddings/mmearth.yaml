@@ -1,0 +1,25 @@
+# MMEarth (ConvNeXt V2 atto) tokens: the product overlay on `configs/neurips2026/embeddings/patch_tokens.yaml`.
+#
+#   geosae train -c configs/neurips2026/embeddings/patch_tokens.yaml -c configs/neurips2026/embeddings/mmearth.yaml
+#
+# As `configs/neurips2026/embeddings/olmoearth.yaml`, for the narrower MMEarth encoder. D = 320, so a
+# sparsity budget carried over from another product changes the active fraction
+# k/D, which is what reconstruction actually follows: set k/D first, then the
+# dictionary width.
+name: mmearth
+
+data:
+  embedding_name: mmearth
+  transforms:
+    stats_npz: data/foundation_stats/mmearth_stats.npz
+
+model:
+  input_dim: 320
+
+baselines:
+  # One seeded row from every training patch, as for AlphaEarth and Tessera;
+  # `geosae fit-table` builds the table once.
+  fit_sampling: per_patch
+  fit_table_path: data/baseline_fit_tables/mmearth_train_per_patch.npz
+  n_fit_pixels: 100000
+  max_iter: 200

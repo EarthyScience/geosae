@@ -1,0 +1,5 @@
+# Frozen-decoder baseline: a BatchTopK SAE whose decoder stays at its random
+# unit-norm initialisation; only the encoder trains.
+model:
+  type: batchtopk
+  freeze_decoder: true

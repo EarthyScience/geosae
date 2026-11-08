@@ -1,0 +1,77 @@
+# Base config of the paper's SAE sweep on alphaearth; combine with one overlay of variants/:
+#   geosae train -c configs/neurips2026/alphaearth.yaml -c configs/neurips2026/variants/batchtopk.yaml \
+#       -o model.latent_dim=1024 -o model.k=16 -o seed=0
+# See README.md for the full grid. The store path is data.zarr_path: set GEOSAE_STORE
+# or pass -o data.zarr_path=<store>.
+# AlphaEarth (D = 64, unit-norm as released).
+name: alphaearth
+seed: 0
+device: cuda
+
+run:
+  root: runs
+
+data:
+  zarr_path: ${oc.env:GEOSAE_STORE,data/majortom210k.zarr}
+  embedding_name: alphaearth
+  split_name: split_210k
+  inram_dtype: float16
+  n_load_workers: 16
+  transforms: {}          # AlphaEarth is already unit-norm
+
+model:
+  type: batchtopk          # set by variants/*.yaml
+  input_dim: 64
+  latent_dim: 1024         # M: sweep over {512, 1024, 2048}
+  k: 16                    # sweep over {8, 16, 32}
+  pre_bias: true
+  normalize_decoder: true
+  init_encoder_from_decoder: true
+  n_batches_to_dead: 25
+
+train:
+  compute_inram: true
+  lr: 1.0e-3
+  beta1: 0.0
+  beta2: 0.999
+  eps: 1.0e-8
+  weight_decay: 0.0
+  clip_grad_norm: 1.0
+  batch_size: 128
+  epochs: 50
+  steps_per_epoch: 1000
+  rampup: 1000
+  aux_penalty: 0.03125
+  top_k_aux: 32
+  l1_coeff: 0.0             # set by variants/relu_l1.yaml
+  slow_group_weight: 0.0    # set by variants/matryoshka.yaml
+  amp: true
+  val_batch_size: 64
+  log_every: 200
+  pixel_subsample:          # per-step pixel subsample instead of whole patches
+    recon_pixels_per_patch: 128
+    n_anchor_patches: 512
+    m_anchor_pixels: 8
+    pair_mode: local
+    local_sigma_px: 2.0
+    local_radius_px: 8
+
+predict:
+  split: test
+  compute_inram: true
+  batch_size: 64
+  max_k: auto               # data-driven padding width (see geosae.predict.writer.estimate_max_k)
+  chunk_cells: 50
+
+baselines:
+  # The conventional decompositions the SAEs are compared against. `fit_sampling`
+  # decides how many distinct patches their parameters are estimated from:
+  # `per_patch` draws one pixel from every training patch, so the fit covers the
+  # split the SAEs train on; `whole_patch` reads whole patches and thins them,
+  # which is far cheaper but leaves `n_fit_pixels / patch_size^2` sites. The
+  # per-patch draw walks the whole split, so `geosae fit-table` builds it once
+  # into `fit_table_path` and every fit reads that file back.
+  fit_sampling: per_patch
+  fit_table_path: data/baseline_fit_tables/alphaearth_train_per_patch.npz
+  n_fit_pixels: 100000
+  max_iter: 200

@@ -1,0 +1,96 @@
+# BatchTopK SAE on a coarse gridded embedding map (one vector per grid cell).
+#
+# The companion of `batchtopk.yaml` for embedding products published as a
+# global lon/lat grid rather than as 10 m rasters: the store has
+# `patch_size = 1`, so a "patch" is a single cell and a batch is a batch of
+# cells. Reference products come from `coarsen_patch_store`, which aggregates
+# the same catalog used at 10 m onto the grid.
+#
+# Every within-patch statistic (within/between-patch variance, patch-mean Moran's I,
+# the within-patch semivariance) is degenerate at one pixel per cell, which follows
+# from the geometry and is not a defect to tune away.
+#
+# Defaults target the 0.25 deg Copernicus-FM map (D=768, ~240k cells);
+# override `data.*` and `model.input_dim` for another gridded product.
+name: gridded
+seed: 42
+device: cuda
+
+run:
+  root: runs
+
+data:
+  zarr_path: data/copernicusfm_025.zarr
+  embedding_name: copernicusfm
+  split_name: split_copernicusfm025
+  inram_dtype: float16
+  n_load_workers: 8
+  # A single-pixel cell has zero spatial std, so the degenerate-cell filter
+  # would drop every row: it must stay off for this geometry.
+  min_spatial_std: null
+  transforms:
+    # A grid-cell embedding is an average over a large cell, so the cells sit in
+    # a tight cloud far from the origin: for the 0.25 deg Copernicus-FM map the
+    # common mean carries 98% of every vector's length. Left uncentred, the
+    # reconstruction cosine is ~0.999 for any model that reproduces the mean, and
+    # the dictionary spends capacity on a constant. `geosae stats` writes the
+    # training-split mean and one isotropic scale here; centring is a
+    # translation and isotropic scaling a dilation, so neither rotates the
+    # geometry the dictionary has to explain (per-dimension whitening would).
+    stats_npz: data/copernicusfm_025_copernicusfm_stats.npz
+
+stats:
+  split: train
+  isotropic: true
+
+model:
+  type: batchtopk
+  input_dim: 768
+  latent_dim: 1024
+  k: 16
+  pre_bias: true
+  normalize_decoder: true
+  init_encoder_from_decoder: true
+  n_batches_to_dead: 25
+  freeze_decoder: false
+
+train:
+  compute_inram: true     # the whole grid is a few hundred MB
+  lr: 1.0e-3
+  beta1: 0.0
+  beta2: 0.999
+  weight_decay: 0.0
+  clip_grad_norm: 1.0
+  # One cell is one sample, so the batch is four orders of magnitude smaller in
+  # pixels than a patch batch of the same nominal size.
+  batch_size: 4096
+  epochs: 30
+  steps_per_epoch: 200
+  rampup: 500
+  aux_penalty: 0.03125
+  top_k_aux: 32
+  amp: true
+  val_batch_size: 4096
+  log_every: 100
+
+predict:
+  split: test
+  compute_inram: true
+  batch_size: 4096
+  # Padding width of the stored sparse codes, and every concept metric is a
+  # function of them. A batch-level top-k does NOT bound a single cell's active
+  # count, so this cannot be derived from k: measured per-cell L0 on this store
+  # reaches 46 at k=16 and 392 at k=192, and a *frozen random* decoder is far
+  # worse than a trained one (max 127 at k=16, p99 of 60 against the trained
+  # model's 28) because its activations are diffuse. Set it above the measured
+  # maximum for every arm being compared, including the null. Overflow raises
+  # rather than truncating silently.
+  max_k: 512
+  chunk_cells: 10000
+
+# The panel reads one pixel per cell, and the spatial-std and flat-pixel filters
+# would drop every one-pixel cell.
+panel:
+  pixels_per_cell: 1
+  min_spatial_std: null
+  drop_flat_pixel_cells: false

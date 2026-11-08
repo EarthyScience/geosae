@@ -1,0 +1,44 @@
+# Graded area-of-applicability hold-outs, layered on configs/neurips2026/aoa.yaml:
+#   geosae aoa --run <run dir> -c configs/neurips2026/aoa.yaml -c configs/neurips2026/aoa_graded.yaml
+# Whole-continent folds put nearly every held-out pixel out of domain; a graded fold
+# fixes a test region and moves the training side away from it, from near to far
+# out of domain, at fixed sizes. Writes eval/aoa/records_graded.csv next to the
+# cached sites and leaves records.csv alone.
+aoa:
+  scenarios: []                      # the continent/PFT grid is configs/neurips2026/aoa.yaml's job
+  # kNN distances, plus feature novelty (mean -log training firing rate of the
+  # active features; `support_probe` weights it by the head's |beta|).
+  variants: [unweighted, ridge, support, support_probe]
+  geometries:
+    - {metric: euclidean, scaling: none}
+    - {metric: euclidean, scaling: std}
+
+  # The untrained random sparse code of the SAE's size and sparsity, scored as a further space:
+  # the centred embedding projected onto `width` random unit-norm directions, keeping the `k`
+  # largest positive projections of each pixel. Its centring mean is that of one pixel per
+  # training patch (`geosae fit-table`); the directions are drawn with the run's seed.
+  dictionary_space:
+    method: random
+    width: ${model.latent_dim}
+    k: ${model.k}
+    seed: ${seed}
+    n_fit_pixels: 100000
+    table_seed: 0
+    table: ${baselines.fit_table_path}
+
+  graded:
+    out: records_graded.csv
+    spaces: null                     # null = every space of the sites (raw, sae, and the dictionary space if fitted)
+    probe_space: raw                 # every index ranks the errors of one ridge head on the raw embedding
+    n_centres: 8                     # test regions per design
+    n_test: 1000                     # sites nearest each centre
+    n_train: 12000                   # training side, the same on every rung
+    n_calibration: 2000              # of which held back to calibrate the decision statistics
+    alpha: 0.1                       # conformal target coverage 1 - alpha
+    designs:
+      distance:                      # great-circle, km beyond the test region's edge
+        gaps: [0, 250, 500, 1000, 2000, 4000]
+        min_separation: 2000
+      environment:                   # standardised CHELSA climate, SD units beyond the edge
+        gaps: [0, 0.25, 0.5, 1, 2]
+        min_separation: 1.0

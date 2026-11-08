@@ -1,0 +1,28 @@
+# A small, fast recipe layered on a model config: a store of a few hundred patches, or a first look
+# at a large one, in minutes on a CPU.
+#
+#   geosae train -c batchtopk -c small
+#   geosae predict -c batchtopk -c small
+model:
+  latent_dim: 256
+  k: 8
+
+data:
+  n_load_workers: 4
+
+train:
+  batch_size: 16          # patches/step -> 16*4096 = 65k pixels/step
+  epochs: 5
+  steps_per_epoch: 100
+  rampup: 50
+  val_batch_size: 16
+  log_every: 50
+  num_workers: 0          # read the in-RAM split in the main process
+
+predict:
+  batch_size: 16
+  num_workers: 0
+
+coverage:
+  n_patches: 100
+  n_perm: 50

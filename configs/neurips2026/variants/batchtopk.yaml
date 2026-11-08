@@ -1,0 +1,3 @@
+# BatchTopK: the B·k largest pre-activations of a batch of B pixels stay active.
+model:
+  type: batchtopk

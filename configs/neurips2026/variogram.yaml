@@ -1,0 +1,23 @@
+# Spatial scale of the features of a set of runs and of the dense bases (Figs. 3, S-variogram),
+# layered on a base config:
+#   geosae variogram -c configs/neurips2026/alphaearth.yaml -c configs/neurips2026/variogram.yaml \
+#       -o name=variogram/alphaearth -o "variogram.runs=[runs/alphaearth/*_M1024_k16_s0/*]"
+# A nested sample of whole test patches: 400 random anchors, each with its neighbours of the
+# distance ranks below, so short and long separations come from the same places.
+variogram:
+  split: test
+  n_anchors: 400
+  neighbour_ranks: [1, 2, 3, 5, 8, 12, 18, 27]
+  pixels_per_cell: 4096      # whole 64 x 64 patches
+  sample_seed: 0
+  products: []               # no labels needed
+  lags: [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 63]
+  pixel_m: 10.0
+  edges_km: [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 20100]
+  min_pairs: 300
+  chunk_cells: 32
+  bases: [raw, pca, ica, nmf]   # fitted with all D components on pixels of this sample
+  fit_on: sample
+  baselines:
+    n_fit_pixels: 100000
+    max_iter: 200

@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use geosae, please cite the paper below."
+title: "geosae: sparse autoencoders for Earth embeddings"
+type: software
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/EarthyScience/geosae"
+url: "https://earthyscience.github.io/geosae"
+authors:
+  - family-names: Benson
+    given-names: Vitus
+    affiliation: "Max Planck Institute for Biogeochemistry, Jena, Germany"
+keywords:
+  - sparse autoencoder
+  - interpretability
+  - earth observation
+  - embeddings
+preferred-citation:
+  type: conference-paper
+  title: "Decomposing Earth Embeddings with Sparse Autoencoders"
+  authors:
+    - family-names: Benson
+      given-names: Vitus
+      affiliation: "Max Planck Institute for Biogeochemistry; ELLIS Unit Jena; ETH Zürich"
+    - family-names: Yang
+      given-names: Fanny
+      affiliation: "ETH Zürich"
+    - family-names: Reichstein
+      given-names: Markus
+      affiliation: "Max Planck Institute for Biogeochemistry; ELLIS Unit Jena"
+  collection-title: "Advances in Neural Information Processing Systems (NeurIPS 2026)"
+  year: 2026

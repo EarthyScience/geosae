@@ -1,0 +1,15 @@
+# Export the dataset's recipe: which MajorTOM cells, in which split, fetched how,
+# scored against which concepts.
+#
+#   geosae release -c configs/release.yaml -o release.out_dir=<dir>
+#
+# `cells.csv` names every cell by its MajorTOM grid id and `products.csv` says
+# how each array was fetched and under which licence.
+name: release
+
+release:
+  zarr_path: ${oc.env:GEOSAE_STORE,data/majortom210k.zarr}
+  out_dir: data/release
+  split_name: split_210k
+  products: null        # null exports the whole registry
+  array_products: {}    # {array: registry key} for an array whose store does not record its product

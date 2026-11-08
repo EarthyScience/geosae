@@ -1,0 +1,20 @@
+# Sub-concept discovery and its validation against compact random partitions (Fig. 5, Table S8),
+# layered on a run's own config:
+#   geosae subconcepts --run <run dir> -c configs/neurips2026/subconcepts.yaml
+# Needs the run's predictions (geosae predict). Every ESA WorldCover class is a parent; a parent
+# patch has the class on at least half of its valid pixels, and up to six aligned features
+# (patch-level folded AUROC >= 0.65 against the parent, near-duplicate atoms dropped) split it.
+# The verdict is the family-wise p-value against size-matched compact geographic partitions.
+subconcepts:
+  parent_product: lc_esa_wc
+  parent_purity: 0.5
+  reference_purity: 0.5
+  align_threshold: 0.65
+  dedup_cosine: 0.9
+  max_subconcepts: 6
+  min_stratum_patches: 30
+  n_null_rank: 50          # null partitions per (parent, reference) pair of the ranking
+  n_null: 200              # null partitions when a pair is re-validated
+  block_deg: [5.0, 20.0]
+  normalize: mean_active
+  seed: 0

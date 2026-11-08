@@ -1,0 +1,85 @@
+# BatchTopK SAE on a patch-token embedding product (a foundation-model encoder
+# run over Sentinel-2, one embedding vector per output token rather than per
+# 10 m pixel). Such embeddings are neither unit-norm nor zero-mean, so the
+# per-dimension standardisation from `geosae subset -o subset.stage=stats`
+# is mandatory: point `data.transforms.stats_npz` at the product's npz.
+#
+# Everything product-specific is a CLI override, e.g.
+#   geosae run -c configs/neurips2026/embeddings/patch_tokens.yaml \
+#     -o name=olmoearth -o data.embedding_name=olmoearth -o model.input_dim=768 \
+#     -o data.transforms.stats_npz=data/foundation_stats/olmoearth_stats.npz
+name: patch_tokens
+seed: 42
+device: cuda
+
+run:
+  root: runs
+
+data:
+  zarr_path: data/s2_foundation_subset.zarr
+  embedding_name: olmoearth
+  split_name: split_10k
+  inram_dtype: float16
+  n_load_workers: 16
+  transforms:
+    stats_npz: null           # required: per-dimension mean/std/clip for this product
+    hard_clip: 10.0           # after z-scoring, in standard deviations
+
+model:
+  type: batchtopk
+  input_dim: 768
+  latent_dim: 1024
+  k: 16
+  pre_bias: true
+  normalize_decoder: true
+  init_encoder_from_decoder: true
+  n_batches_to_dead: 25
+  freeze_decoder: false
+
+train:
+  compute_inram: true
+  lr: 1.0e-3
+  beta1: 0.0
+  beta2: 0.999
+  weight_decay: 0.0
+  clip_grad_norm: 1.0
+  # A token grid is ~8x8, not 64x64, so a patch carries ~64x fewer vectors than a
+  # pixel-wise product: many more patches per step, and fewer steps per epoch.
+  batch_size: 512
+  epochs: 10
+  steps_per_epoch: 250
+  rampup: 250
+  aux_penalty: 0.03125
+  top_k_aux: 32
+  amp: true
+  val_batch_size: 256
+  log_every: 100
+
+predict:
+  split: test
+  compute_inram: true
+  batch_size: 256
+  max_k: 32
+  chunk_cells: 200
+
+# The panel reads every token of a patch,
+# with the concept labels taken from the parent MajorTOM store the subset was cut
+# from: each 80 m token carries the majority class of its 8 x 8 parent pixels.
+panel:
+  pixels_per_cell: 64
+  label_store: &parent_labels
+    zarr_path: ${oc.env:GEOSAE_STORE,data/majortom210k.zarr}   # the parent MajorTOM store
+    cell_index_array: cell_indices
+    token_footprint: 8
+
+# Concept coverage and spatial scale read the same whole-patch token sample as the panel.
+coverage:
+  n_patches: 4000
+  pixels_per_patch: 64
+  label_store: *parent_labels
+
+variogram:
+  n_cells: 4000
+  pixels_per_cell: 64
+  pixel_m: 80.0             # one token covers 8 x 8 parent pixels of 10 m
+  products: []              # spatial scale needs no concept labels

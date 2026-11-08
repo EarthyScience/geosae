@@ -1,0 +1,17 @@
+# Reconstruction at matched sparsity of a sweep of runs and of the dense baselines, layered on a
+# base config (Fig. 2, Table S3):
+#   geosae panel -c configs/neurips2026/alphaearth.yaml -c configs/neurips2026/panel.yaml \
+#       -o name=panel/alphaearth -o "panel.runs=[runs/alphaearth/*/*]"
+# Every row is scored on one sample of test pixels; the baselines are fitted on one pixel per
+# training patch (`geosae fit-table`) with as many components as the SAEs have active features.
+panel:
+  split: test
+  n_cells: 4000              # test patches
+  pixels_per_cell: 256       # pixels per patch, at positions shared by every patch
+  sample_seed: 0
+  blocks: [1]                # reconstruction only
+  baselines:
+    methods: [raw, pca, ica, nmf]
+    widths: [8, 16, 32]      # components: raw keeps its dimensions of largest variance
+    activation_rate: 1.0     # every component of a baseline is active on every pixel
+    max_iter: 400

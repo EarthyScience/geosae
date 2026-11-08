@@ -1,0 +1,26 @@
+# OlmoEarth v1-Base tokens: the product overlay on `configs/neurips2026/embeddings/patch_tokens.yaml`.
+#
+#   geosae train -c configs/neurips2026/embeddings/patch_tokens.yaml -c configs/neurips2026/embeddings/olmoearth.yaml
+#
+# The base config carries the token geometry and the training recipe; this layer
+# names the product inside the shared subset store, its width, and the
+# per-dimension statistics `geosae subset -o subset.stage=stats`
+# wrote for it. OlmoEarth tokens are neither unit-norm nor zero-mean, so the
+# standardisation is not optional.
+name: olmoearth
+
+data:
+  embedding_name: olmoearth
+  transforms:
+    stats_npz: data/foundation_stats/olmoearth_stats.npz
+
+model:
+  input_dim: 768
+
+baselines:
+  # One seeded row from every training patch, as for AlphaEarth and Tessera;
+  # `geosae fit-table` builds the table once.
+  fit_sampling: per_patch
+  fit_table_path: data/baseline_fit_tables/olmoearth_train_per_patch.npz
+  n_fit_pixels: 100000
+  max_iter: 200

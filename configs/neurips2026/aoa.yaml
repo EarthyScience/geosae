@@ -1,0 +1,29 @@
+# Area-of-applicability sweep for a trained run, layered on the run's own config:
+#   geosae aoa --run runs/alphaearth/batchtopk_M1024_k16_s0/<timestamp> -c configs/neurips2026/aoa.yaml
+# The run supplies `data` and `model`. Held-out
+# pixels are sampled once and cached in the run dir, so re-running the sweep with
+# different geometries never re-reads the store.
+aoa:
+  split: test
+  targets: [canopy_height, elevation]   # CHMv2 canopy height (m), Copernicus DEM elevation (m)
+  pixels_per_patch: 1                # one pixel per patch keeps the sites spatially independent
+  max_sites: null                    # cap the site count before the sweep (null = all)
+  resample: false                    # true forces a re-sample even if the cache exists
+  seed: 0                            # sites and folds: the same for every run scored
+
+  k: 5                               # neighbours for the dissimilarity index
+  alpha: 1.0                         # ridge penalty of the downstream head
+  max_train: 15000                   # in-fold pixels entering the kNN reference set
+  max_test: 8000                     # held-out pixels scored per fold
+
+  scenarios: [single_continent, leave_one_continent_out, single_pft, leave_one_pft_out]
+  variants: [unweighted, ridge]      # add `rf` for the original Meyer-Pebesma weighting
+  extra_signals: true                # local point density + support novelty
+
+  # The distance geometry is a free choice, and comparing a unit-norm embedding
+  # with an unnormalised sparse code under one fixed geometry compares two
+  # different estimators — so sweep it rather than assume it.
+  geometries:
+    - {metric: euclidean, scaling: none}
+    - {metric: euclidean, scaling: active}
+    - {metric: cosine, scaling: none}

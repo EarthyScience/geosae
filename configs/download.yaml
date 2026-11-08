@@ -1,0 +1,64 @@
+# Build a patch store from the original sources: one 64 x 64 patch of 10 m pixels
+# per MajorTOM cell, carrying the embeddings and reference products you choose.
+#
+#   # 300 random land cells in a box, AlphaEarth (public mirror) + ESA WorldCover
+#   geosae download -c configs/download.yaml -o download.out=data/mystore.zarr \
+#       -o download.cells.n=300 -o "download.cells.bbox=[5,45,15,55]" \
+#       -o "download.products=[alphaearth_cog,lc_esa_wc]"
+#   ... -o download.plan=true      # sources, sizes and credentials; fetches nothing
+#
+# With `cells: null` the build follows a named preset instead (`majortom210k`, the
+# store of the NeurIPS 2026 paper; see docs/neurips2026.md), and `subset` /
+# `gridded` derive further stores from a patch store:
+#
+#   geosae subset   -c configs/download.yaml -o subset.stage=fetch    # Sentinel-2 subset (CPU)
+#   geosae subset   -c configs/download.yaml -o subset.stage=embed    # OlmoEarth + MMEarth (GPU)
+#   geosae subset   -c configs/download.yaml -o subset.stage=stats
+#   geosae gridded  -c configs/download.yaml                          # Copernicus-FM 0.25 deg store
+name: download
+
+download:
+  out: ${oc.env:GEOSAE_STORE,data/majortom210k.zarr}
+  cells: null             # {n, bbox, points or ids, seed}: see geosae.data.download.grid.select_cells
+  split:                  # the split of a `cells` store, written as split_<name>
+    name: default
+    val_frac: 0.1
+    test_frac: 0.2
+  preset: majortom210k    # used when cells is null
+  products: null          # registry keys; required with cells, else replacing the preset's
+  rows: null              # null = every row; a count of leading rows; or [start, end]
+  plan: false             # true: print sources, sizes and credentials, fetch nothing
+  max_workers: 8          # concurrent tile fetches per product (network-bound)
+  block_rows: 25600       # rows written per block; a block is the unit a re-run resumes from
+  gee_project: null       # Earth Engine project (else the credentials' default)
+  cache_dir: null         # where downloaded source files are cached (default data/raster_cache)
+  fetch_kwargs: {}        # {product: {kwarg: value}} fetcher overrides
+
+subset:
+  stage: fetch            # fetch | embed | stats, run as separate jobs
+  parent: ${download.out}
+  out: data/s2_foundation_subset.zarr
+  split_name: split_10k   # 10k test + 10k train + 2k val rows of split_210k ...
+  max_per_split:
+    val: 1000             # ... of which 1,000 val rows, drawn with `seed`
+  seed: 42
+  exclude_stores: []
+  max_cells: null         # cap for a smoke test
+  patch_size: 128         # 1.28 km of Sentinel-2 around each cell centre
+  year: 2024
+  max_cloud_cover: 10.0
+  max_workers: 32
+  backbones: [olmoearth, mmearth]
+  variants: []
+  device: cuda
+  batch_cells: 64
+  patch_size_tokens: 8    # OlmoEarth token stride: 80 m tokens
+  crop_px: 96             # the largest crop the backbones encode without extrapolating positions
+  stats_dir: data/foundation_stats
+
+gridded:
+  src: ${download.out}
+  out: data/copernicusfm_025.zarr
+  cache_dir: data/raster_cache/copernicusfm
+  products: null          # source arrays to aggregate; null = every reference product
+  n_workers: 4

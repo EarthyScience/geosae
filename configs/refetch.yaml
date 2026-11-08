@@ -1,0 +1,25 @@
+# Re-fetch one reference product into an existing patch store.
+#
+# A store is built once and its products are fetched into it in one pass, so a
+# product found to be wrong afterwards has no way back in. This puts one there.
+# Naming an `array` other than the product's own writes the new values *beside*
+# the old ones, which is what lets the two be compared before anything is
+# retired — and means the run touches no array anything else depends on.
+#
+# Writing to a separate `out_path` is the safe form and the default choice for a
+# shared store: the destination is created as a store in its own right, carrying
+# the same cell axis and cell centres, and nothing anything else depends on is
+# touched.
+#
+#   geosae refetch -c configs/refetch.yaml \
+#       -o refetch.out_path=data/chmv2_check.zarr \
+#       -o refetch.product=chmv2 -o refetch.array=chmv2_check
+name: refetch
+
+refetch:
+  zarr_path: ${oc.env:GEOSAE_STORE,data/majortom210k.zarr}   # the store the cells come from
+  out_path: null        # where to write; null writes into `zarr_path` itself
+  product: null         # a key of the product registry
+  array: null           # destination array; null uses the product's own
+  rows: masked          # "masked" (rows the product already covers), "all", or a count
+  max_workers: 8        # concurrent tile fetches; the fetchers are network-bound

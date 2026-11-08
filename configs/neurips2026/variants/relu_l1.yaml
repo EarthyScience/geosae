@@ -1,0 +1,11 @@
+# ReLU+l1: sparsity from an l1 penalty, whose weight the target-L0 controller tunes
+# until the mean number of active features matches model.k. The embedding enters as it
+# is (unit norm for AlphaEarth, standardised for Tessera), without the per-batch rescaling
+# to norm sqrt(D) that the ReLU SAE applies by default.
+model:
+  type: relu_l1
+  normalize_inputs: false
+train:
+  l1_coeff: 0.005          # starting weight at k = 16 (0.007 at k = 8, 0.003 at k = 32); the controller adapts it
+  target_l0:
+    value: ${model.k}

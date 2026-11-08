@@ -1,0 +1,28 @@
+# The frozen evaluation pool of one embedding:
+#   geosae pool -c configs/neurips2026/alphaearth.yaml -c configs/neurips2026/eval_pool.yaml
+# Layers on top of a training config, which supplies `data.zarr_path`. The pool is
+# drawn ONCE and every metric then scores the identical pixels through
+# `coverage.pool` — a published number cites `<name>.v<version>` and can be
+# re-derived from this recipe alone. Never edit a field in place: bump `version`
+# and write a new file, or old numbers silently stop being reproducible.
+pool:
+  name: majortom210k
+  version: 1
+  out: data/eval_pools/majortom210k_${data.embedding_name}.v1.npz   # one .npz + a sibling .json manifest
+
+  split: test                  # the geographically blocked held-out split
+  split_name: split_210k
+  embedding_name: ${data.embedding_name}
+  # A coverage count is a count *out of* the scorable concepts, and that denominator
+  # grows with n_cells (172 of 354 concepts at 100 cells, 256 at 4000, 272 at 20 000).
+  # 4000 cells sit on the flat part of that curve while the dense (N, M) code matrix
+  # stays tractable at M = 4096.
+  n_cells: 4000                # cells drawn from the split
+  pixels_per_cell: 256         # pixels per cell, at positions drawn once and shared by every cell
+  seed: 0                      # seeds the cell, pixel-position and balanced draws
+  products: null               # concept-product subset; null = every registered product
+  max_per_side: 2500           # balanced-sample cap per concept side
+  min_positive: 50             # concepts with fewer positive pixels are not scorable
+
+coverage:
+  pool: ${pool.out}  # point `geosae coverage` at the pool built above

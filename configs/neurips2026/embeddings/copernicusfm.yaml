@@ -1,0 +1,16 @@
+# Copernicus-FM on its 0.25 deg map: the baseline-fitting overlay on `configs/neurips2026/embeddings/gridded.yaml`.
+#
+#   geosae train -c configs/neurips2026/embeddings/gridded.yaml -c configs/neurips2026/embeddings/copernicusfm.yaml
+#
+# The base config carries the store, the embedding and the training recipe. One grid cell
+# is ~28 km across, so a class that exists at 10 m but never dominates a cell (roads,
+# single buildings, small water bodies) is scorable in name only.
+name: copernicusfm
+
+baselines:
+  # One seeded row from every training patch, as for AlphaEarth and Tessera;
+  # `geosae fit-table` builds the table once.
+  fit_sampling: per_patch
+  fit_table_path: data/baseline_fit_tables/copernicusfm_train_per_patch.npz
+  n_fit_pixels: 100000
+  max_iter: 200

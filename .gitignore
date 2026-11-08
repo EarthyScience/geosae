@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+build/
+dist/
+
+# environments
+.venv/
+uv.lock
+
+# mkdocs build output
+site/
+
+# run outputs and data
+/runs
+/data
+/logs
+*.zarr/
+*.pth
+*.png
+!docs/assets/logo/**/*.png
+!docs/assets/logo/*.png
+!docs/assets/quickstart/*.png

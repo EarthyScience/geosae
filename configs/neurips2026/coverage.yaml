@@ -1,0 +1,9 @@
+# Concept alignment of one run on the frozen evaluation pool (Figs. 4, S-mono, Table S6), layered
+# on the run's own config:
+#   geosae coverage --run <run dir> -c configs/neurips2026/coverage.yaml
+# Build the pool first with configs/neurips2026/eval_pool.yaml.
+coverage:
+  pool: data/eval_pools/majortom210k_${data.embedding_name}.v1.npz
+  dense_bases: [raw, pca, ica, nmf]   # scored on the same pixels as the run
+  matched_budgets: []
+  random_widths: []                   # [1024]: the untrained random dictionary of Table S6

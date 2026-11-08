@@ -1,0 +1,7 @@
+# Matryoshka BatchTopK: BatchTopK plus the reconstruction of the nested prefix of
+# round(0.2 M) atoms (h_frac), weighted by train.slow_group_weight.
+model:
+  type: matryoshka
+  h_frac: 0.2
+train:
+  slow_group_weight: 1.0
