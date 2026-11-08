@@ -11,7 +11,7 @@
   <a href="https://github.com/EarthyScience/geosae/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/EarthyScience/geosae/ci.yml?branch=main&label=CI"></a>
   <a href="https://github.com/EarthyScience/geosae/actions/workflows/docs.yml"><img alt="Coverage" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fearthyscience.github.io%2Fgeosae%2Fcoverage.json"></a>
   <a href="https://pypi.org/project/geosae/"><img alt="PyPI" src="https://img.shields.io/pypi/v/geosae"></a>
-  <a href="https://pypi.org/project/geosae/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/geosae"></a>
+  <a href="https://pypi.org/project/geosae/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/geosae?label=python"></a>
   <a href="https://earthyscience.github.io/geosae"><img alt="Documentation" src="https://img.shields.io/github/actions/workflow/status/EarthyScience/geosae/docs.yml?branch=main&label=docs"></a>
   <a href="https://github.com/EarthyScience/geosae/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <a href="https://doi.org/10.5281/zenodo.24046835"><img alt="DOI" src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.24046835-blue"></a>
