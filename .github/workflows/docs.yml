@@ -1,6 +1,7 @@
 name: Docs
 
-# Deploys the documentation site to GitHub Pages from main.
+# Deploys the documentation site to GitHub Pages from main, with the coverage.json that the
+# README's coverage badge reads (a shields.io endpoint).
 
 on:
   push:
@@ -27,10 +28,21 @@ jobs:
           cache: pip
       - name: Install CPU torch
         run: pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - name: Install geosae with docs tooling
-        run: pip install -e ".[docs]"
+      - name: Install geosae with docs and test tooling
+        run: pip install -e ".[docs,dev,viz]"
       - name: Build docs
         run: mkdocs build --strict
+      - name: Measure test coverage
+        run: pytest -q --cov --cov-report=json:coverage.json
+      - name: Write the coverage badge
+        run: |
+          python - <<'PY'
+          import json
+          pct = json.load(open("coverage.json"))["totals"]["percent_covered"]
+          color = "brightgreen" if pct >= 80 else "yellow" if pct >= 60 else "orange"
+          badge = {"schemaVersion": 1, "label": "coverage", "message": f"{pct:.0f}%", "color": color}
+          json.dump(badge, open("site/coverage.json", "w"))
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/
