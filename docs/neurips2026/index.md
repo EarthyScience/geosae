@@ -139,7 +139,8 @@ Autoencoders. *Advances in Neural Information Processing Systems (NeurIPS 2026)*
   title     = {Decomposing Earth Embeddings with Sparse Autoencoders},
   author    = {Benson, Vitus and Yang, Fanny and Reichstein, Markus},
   booktitle = {Advances in Neural Information Processing Systems (NeurIPS 2026)},
-  year      = {2026}
+  year      = {2026},
+  url       = {https://openreview.net/forum?id=kB29xkjNQK}
 }
 ```
 
@@ -150,6 +151,4 @@ WeatherGenerator (grant agreement 101187947). It rests on openly shared data: th
 Foundations Satellite Embedding dataset (Google, Google DeepMind), Tessera, Copernicus-FM,
 OlmoEarth, MMEarth, the MajorTOM grid, and the reference products listed in the paper.
 
-<!-- PAPER_URL: the one place the Paper button's target is set. Replace "#citation" with the
-camera-ready entry (NeurIPS proceedings or OpenReview) once it is public. -->
-[paper]: #citation
+[paper]: https://openreview.net/forum?id=kB29xkjNQK
