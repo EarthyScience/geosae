@@ -19,6 +19,7 @@ Vitus Benson<sup>1,2,3</sup> &emsp; Fanny Yang<sup>3</sup> &emsp; Markus Reichst
 <p class="paper-venue">NeurIPS 2026</p>
 
 [:material-file-document: Paper][paper]{ .md-button .md-button--primary }
+[:material-file-document-outline: arXiv](https://arxiv.org/abs/2611.11398){ .md-button }
 [:material-github: Code](https://github.com/EarthyScience/geosae){ .md-button }
 [:material-database: Data & checkpoints](https://doi.org/10.5281/zenodo.24046835){ .md-button }
 [:material-refresh: Reproduce](reproduce-figures.md){ .md-button }
@@ -130,6 +131,9 @@ writes a PDF and a PNG there, plus a JSON with the numbers the paper quotes; the
 write a LaTeX tabular. `python scripts/neurips2026/<script>.py -h` lists the arguments of each.
 
 ## Citation
+
+The paper is on [OpenReview](https://openreview.net/forum?id=kB29xkjNQK) and
+[arXiv](https://arxiv.org/abs/2611.11398).
 
 Benson, V., Yang, F., & Reichstein, M. (2026). Decomposing Earth Embeddings with Sparse
 Autoencoders. *Advances in Neural Information Processing Systems (NeurIPS 2026)*.
