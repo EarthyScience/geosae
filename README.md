@@ -16,6 +16,7 @@
   <a href="https://github.com/EarthyScience/geosae/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <a href="https://doi.org/10.5281/zenodo.24046835"><img alt="DOI" src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.24046835-blue"></a>
   <a href="https://openreview.net/forum?id=kB29xkjNQK"><img alt="Paper: NeurIPS 2026" src="https://img.shields.io/badge/paper-NeurIPS%202026-8c1b13"></a>
+  <a href="https://arxiv.org/abs/2611.11398"><img alt="arXiv" src="https://img.shields.io/badge/arXiv-2611.11398-b31b1b"></a>
 </p>
 
 `geosae` is a Python library for doing science with sparse autoencoders (SAEs) on Earth
@@ -152,7 +153,8 @@ applications show how sparse features could be used: discovering land-cover sub-
 detecting out-of-distribution pixels by estimating an area of applicability. Neither is yet
 reliable enough for practical use.
 
-- The paper is on [OpenReview](https://openreview.net/forum?id=kB29xkjNQK).
+- The paper is on [OpenReview](https://openreview.net/forum?id=kB29xkjNQK) and
+  [arXiv](https://arxiv.org/abs/2611.11398).
 - The [NeurIPS 2026 paper](https://earthyscience.github.io/geosae/neurips2026/) docs page covers
   the paper's configs and stages.
 - [`scripts/neurips2026/`](https://github.com/EarthyScience/geosae/blob/main/scripts/neurips2026/README.md)
